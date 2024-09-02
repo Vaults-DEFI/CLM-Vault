@@ -6,22 +6,21 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-
-import {IUniswapV3Pool} from "./interfaces/sushiswap/IUniswapV3Pool.sol";
+import {StratManager} from "./StratManager.sol";
+import {IUniswapV3Pool} from "./interfaces/sushiswap/IUniswapV3Pool.sol"; // it is copied from sushiswap
 import {LiquidityAmounts} from "./utils/LiquidityAmounts.sol"; // it is copied from sushiswap
 import {TickMath} from "./utils/TickMath.sol"; // it is copied from sushiswap
+import {TickUtils, FullMath} from "./utils/TickUtils.sol"; // FullMath is copied from sushiswap
 import {UniV3Utils} from "./utils/UniV3Utils.sol";
-import {TickUtils, FullMath} from "./utils/TickUtils.sol"; // it is copied from sushiswap
-// add TickUtils
 import {IVaultConcLiq} from "./interfaces/vault/IVaultConcLiq.sol";
-
-// add IStrategyFactory
-// add IStrategyConcLiq
-// add IStrategyUniswapV3
-// add IBeefySwapper
 import {IQuoter} from "./interfaces/sushiswap/IQuoter.sol";
 
-contract StrategyPassiveManagerSushi is Ownable, Pausable {
+// IStrategyFactory
+// IStrategyConcLiq
+// IStrategyUniswapV3
+// IBeefySwapper
+
+contract StrategyPassiveManagerSushi is StratManager {
     using SafeERC20 for IERC20Metadata;
     using TickMath for int24;
 
@@ -81,30 +80,6 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
     /// @notice Initializes the ticks on first deposit.
     bool private initTicks;
 
-    /// @notice The native address of the chain
-    address public native;
-
-    /// @notice The address of the vault
-    address public vault;
-
-    /// @notice The address of the unirouter
-    address public unirouter;
-
-    /// @notice The total amount of token0 locked in the vault
-    uint256 public totalLocked0;
-
-    /// @notice The total amount of token1 locked in the vault
-    uint256 public totalLocked1;
-
-    /// @notice The last time the strat harvested
-    uint256 public lastHarvest;
-
-    /// @notice The last time we adjusted the position
-    uint256 public lastPositionAdjustment;
-
-    /// @notice The duration of the locked rewards
-    uint256 constant DURATION = 1 hours;
-
     // Errors
     error NotAuthorized();
     error NotPool();
@@ -114,8 +89,6 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
     error InvalidOutput();
     error NotCalm();
     error TooMuchSlippage();
-    error StrategyPaused();
-    error NotManager();
 
     // Events
     event TVL(uint256 bal0, uint256 bal1);
@@ -126,18 +99,17 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
     event SetLpToken0ToNativePath(bytes path);
     event SetLpToken1ToNativePath(bytes path);
     event SetQuoter(address quoter);
-    event ChargedFees(
-        uint256 callFeeAmount,
-        uint256 beefyFeeAmount,
-        uint256 strategistFeeAmount
-    );
+    // event ChargedFees(
+    //     uint256 callFeeAmount,
+    //     uint256 beefyFeeAmount,
+    //     uint256 strategistFeeAmount
+    // );
     event ClaimedFees(
         uint256 feeMain0,
         uint256 feeMain1,
         uint256 feeAlt0,
         uint256 feeAlt1
     );
-    event SetUnirouter(address unirouter);
 
     /**
      * @notice Initializes the strategy and the inherited strat fee manager.
@@ -152,17 +124,13 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
         address _pool,
         address _quoter,
         address _native,
-        address _vault,
-        address _unirouter,
         int24 _positionWidth,
         bytes memory _lpToken0ToNativePath,
-        bytes memory _lpToken1ToNativePath
-    ) Ownable(msg.sender) Pausable() {
+        bytes memory _lpToken1ToNativePath,
+        CommonAddresses memory _commonAddresses
+    ) StratManager(_commonAddresses, _native) {
         pool = _pool;
         quoter = _quoter;
-        native = _native;
-        vault = _vault;
-        unirouter = _unirouter;
         lpToken0 = IUniswapV3Pool(_pool).token0();
         lpToken1 = IUniswapV3Pool(_pool).token1();
 
@@ -195,14 +163,6 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
         if (!isCalm()) revert NotCalm();
     }
 
-    /**
-     * @notice Modifier that throws if called by any account other than the manager or the owner
-     */
-    modifier onlyManager() {
-        if (msg.sender != owner()) revert NotManager();
-        _;
-    }
-
     /// @notice function to only allow deposit/harvest actions when current price is within a certain deviation of twap.
     function isCalm() public view returns (bool) {
         int24 tick = currentTick();
@@ -220,21 +180,21 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
         else return true;
     }
 
-    // /// @notice Only allows the vault to call a function.
-    // function _onlyVault () private view {
-    //     if (msg.sender != vault) revert NotVault();
-    // }
+    /// @notice Only allows the vault to call a function.
+    function _onlyVault() private view {
+        if (msg.sender != vault) revert NotVault();
+    }
 
     /// @notice Called during deposit and withdraw to remove liquidity and harvest fees for accounting purposes.
     function beforeAction() external {
-        // _onlyVault();
+        _onlyVault();
         _claimEarnings();
         _removeLiquidity();
     }
 
     /// @notice Called during deposit to add all liquidity back to their positions.
     function deposit() external onlyCalmPeriods {
-        // _onlyVault();
+        _onlyVault();
 
         // Add all liquidity
         if (!initTicks) {
@@ -256,7 +216,7 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
      * @param _amount1 The amount of token1 to withdraw.
      */
     function withdraw(uint256 _amount0, uint256 _amount1) external {
-        // _onlyVault();
+        _onlyVault();
 
         // Liquidity has already been removed in beforeAction() so this is just a simple withdraw.
         if (_amount0 > 0)
@@ -396,20 +356,14 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
         else return true;
     }
 
-    /// @notice Harvest call to claim fees from pool, charge fees for Beefy, then readjust our positions.
-    /// @param _callFeeRecipient The address to send the call fee to.
-    function harvest(address _callFeeRecipient) external {
-        _harvest(_callFeeRecipient);
-    }
-
     /// @notice Harvest call to claim fees from the pool, charge fees for Beefy, then readjust our positions.
     /// @dev Call fee goes to the tx.origin.
     function harvest() external {
-        _harvest(tx.origin);
+        _harvest();
     }
 
     /// @notice Internal function to claim fees from the pool, charge fees for Beefy, then readjust our positions.
-    function _harvest(address _callFeeRecipient) private {
+    function _harvest() private {
         // Claim fees from the pool and collect them.
         _claimEarnings();
         _removeLiquidity();
@@ -692,11 +646,8 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
     function lockedProfit()
         public
         view
-        returns (
-            // override
-            uint256 locked0,
-            uint256 locked1
-        )
+        override
+        returns (uint256 locked0, uint256 locked1)
     {
         (uint256 balThis0, uint256 balThis1) = balancesOfThis();
         (uint256 balPool0, uint256 balPool1, , , , ) = balancesOfPool();
@@ -946,6 +897,22 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
         return UniV3Utils.pathToRoute(lpToken1ToNativePath);
     }
 
+    /// @notice Returns the price of the first token in native token.
+    function lpToken0ToNativePrice() external returns (uint256) {
+        uint amount = 10 ** IERC20Metadata(lpToken0).decimals() / 10;
+        if (lpToken0 == native) return amount * 10;
+        return
+            IQuoter(quoter).quoteExactInput(lpToken0ToNativePath, amount) * 10;
+    }
+
+    /// @notice Returns the price of the second token in native token.
+    function lpToken1ToNativePrice() external returns (uint256) {
+        uint amount = 10 ** IERC20Metadata(lpToken1).decimals() / 10;
+        if (lpToken1 == native) return amount * 10;
+        return
+            IQuoter(quoter).quoteExactInput(lpToken1ToNativePath, amount) * 10;
+    }
+
     /**
      * @notice The twap of the last minute from the pool.
      * @return twapTick The twap of the last minute from the pool.
@@ -957,6 +924,15 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
 
         (int56[] memory tickCuml, ) = IUniswapV3Pool(pool).observe(secondsAgo);
         twapTick = (tickCuml[1] - tickCuml[0]) / int32(twapInterval);
+    }
+
+    function setTwapInterval(uint32 _interval) external onlyOwner {
+        emit SetTwapInterval(twapInterval, _interval);
+
+        // Require the interval to be greater than 60 seconds.
+        if (_interval < 60) revert InvalidInput();
+
+        twapInterval = _interval;
     }
 
     /**
@@ -976,7 +952,7 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
      * @notice set the unirouter address
      * @param _unirouter The new unirouter address
      */
-    function setUnirouter(address _unirouter) external onlyOwner {
+    function setUnirouter(address _unirouter) external override onlyOwner {
         _removeAllowances();
         unirouter = _unirouter;
         _giveAllowances();
@@ -1040,19 +1016,5 @@ contract StrategyPassiveManagerSushi is Ownable, Pausable {
     function _removeAllowances() private {
         IERC20Metadata(lpToken0).forceApprove(unirouter, 0);
         IERC20Metadata(lpToken1).forceApprove(unirouter, 0);
-    }
-
-    /**
-     * @notice function that returns true if the strategy is paused
-     */
-    function _isPaused() internal view returns (bool) {
-        return paused();
-    }
-
-    /**
-     * @notice function that throws if the strategy is paused
-     */
-    function _whenStrategyNotPaused() internal view {
-        if (paused()) revert StrategyPaused();
     }
 }
