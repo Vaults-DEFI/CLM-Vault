@@ -9,6 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IStrategy} from "./interfaces/vault/IStrategy.sol";
+import {console} from "forge-std/Test.sol";
 
 contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -48,7 +49,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
     );
 
     constructor(
-        address _strategy,
+        // address _strategy,
         string memory _name,
         string memory _symbol
     )
@@ -57,7 +58,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
         Ownable(msg.sender)
         ReentrancyGuard()
     {
-        strategy = IStrategy(_strategy);
+        // strategy = IStrategy(_strategy);
     }
 
     /**
@@ -292,7 +293,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
                 swapFee()
             );
         if (amount0 > _amount0 || amount1 > _amount1) revert NotEnoughTokens();
-
+        console.log("before transfer from...........");
         if (amount0 > 0)
             IERC20(token0).safeTransferFrom(
                 msg.sender,
@@ -394,5 +395,9 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
     function inCaseTokensGetStuck(address _token) external onlyOwner {
         uint256 amount = IERC20(_token).balanceOf(address(this));
         IERC20(_token).safeTransfer(msg.sender, amount);
+    }
+
+    function setStrategyAddress(address _strategy) public onlyOwner {
+        strategy = IStrategy(_strategy);
     }
 }

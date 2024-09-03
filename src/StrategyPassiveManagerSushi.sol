@@ -45,10 +45,10 @@ contract StrategyPassiveManagerSushi is StratManager {
     uint256 public fees0;
     uint256 public fees1;
 
-    /// @notice The path to swap the first token to the native token for fee harvesting.
-    bytes public lpToken0ToNativePath;
-    /// @notice The path to swap the second token to the native token for fee harvesting.
-    bytes public lpToken1ToNativePath;
+    // /// @notice The path to swap the first token to the native token for fee harvesting.
+    // bytes public lpToken0ToNativePath;
+    // /// @notice The path to swap the second token to the native token for fee harvesting.
+    // bytes public lpToken1ToNativePath;
 
     /// @notice The struct to store our tick positioning.
     struct Position {
@@ -96,8 +96,8 @@ contract StrategyPassiveManagerSushi is StratManager {
     event SetPositionWidth(int24 oldWidth, int24 width);
     event SetDeviation(int56 maxTickDeviation);
     event SetTwapInterval(uint32 oldInterval, uint32 interval);
-    event SetLpToken0ToNativePath(bytes path);
-    event SetLpToken1ToNativePath(bytes path);
+    // event SetLpToken0ToNativePath(bytes path);
+    // event SetLpToken1ToNativePath(bytes path);
     event SetQuoter(address quoter);
     // event ChargedFees(
     //     uint256 callFeeAmount,
@@ -117,18 +117,15 @@ contract StrategyPassiveManagerSushi is StratManager {
      * @param _pool The underlying Uniswap V3 pool.
      * @param _quoter The address of the quoter.
      * @param _positionWidth The multiplier for tick spacing to find our range.
-     * @param _lpToken0ToNativePath The bytes path for swapping the first token to the native token.
-     * @param _lpToken1ToNativePath The bytes path for swapping the second token to the native token.
      */
     constructor(
         address _pool,
         address _quoter,
-        address _native,
         int24 _positionWidth,
-        bytes memory _lpToken0ToNativePath,
-        bytes memory _lpToken1ToNativePath,
+        // bytes memory _lpToken0ToNativePath,
+        // bytes memory _lpToken1ToNativePath,
         CommonAddresses memory _commonAddresses
-    ) StratManager(_commonAddresses, _native) {
+    ) StratManager(_commonAddresses) {
         pool = _pool;
         quoter = _quoter;
         lpToken0 = IUniswapV3Pool(_pool).token0();
@@ -138,8 +135,8 @@ contract StrategyPassiveManagerSushi is StratManager {
         positionWidth = _positionWidth;
 
         // Set up our paths for swapping to native.
-        setLpToken0ToNativePath(_lpToken0ToNativePath);
-        setLpToken1ToNativePath(_lpToken1ToNativePath);
+        // setLpToken0ToNativePath(_lpToken0ToNativePath);
+        // setLpToken1ToNativePath(_lpToken1ToNativePath);
 
         // Set the twap interval to 120 seconds.
         twapInterval = 120;
@@ -842,29 +839,29 @@ contract StrategyPassiveManagerSushi is StratManager {
      * @notice Sets the path to swap the first token to the native token for fee harvesting.
      * @param _path The path to swap the first token to the native token.
      */
-    function setLpToken0ToNativePath(bytes memory _path) public onlyOwner {
-        if (_path.length > 0) {
-            address[] memory _route = UniV3Utils.pathToRoute(_path);
-            if (_route[0] != lpToken0) revert InvalidInput();
-            if (_route[_route.length - 1] != native) revert InvalidOutput();
-            lpToken0ToNativePath = _path;
-            emit SetLpToken0ToNativePath(_path);
-        }
-    }
+    // function setLpToken0ToNativePath(bytes memory _path) public onlyOwner {
+    //     if (_path.length > 0) {
+    //         address[] memory _route = UniV3Utils.pathToRoute(_path);
+    //         if (_route[0] != lpToken0) revert InvalidInput();
+    //         if (_route[_route.length - 1] != native) revert InvalidOutput();
+    //         lpToken0ToNativePath = _path;
+    //         emit SetLpToken0ToNativePath(_path);
+    //     }
+    // }
 
     /**
      * @notice Sets the path to swap the second token to the native token for fee harvesting.
      * @param _path The path to swap the second token to the native token.
      */
-    function setLpToken1ToNativePath(bytes memory _path) public onlyOwner {
-        if (_path.length > 0) {
-            address[] memory _route = UniV3Utils.pathToRoute(_path);
-            if (_route[0] != lpToken1) revert InvalidInput();
-            if (_route[_route.length - 1] != native) revert InvalidOutput();
-            lpToken1ToNativePath = _path;
-            emit SetLpToken1ToNativePath(_path);
-        }
-    }
+    // function setLpToken1ToNativePath(bytes memory _path) public onlyOwner {
+    //     if (_path.length > 0) {
+    //         address[] memory _route = UniV3Utils.pathToRoute(_path);
+    //         if (_route[0] != lpToken1) revert InvalidInput();
+    //         if (_route[_route.length - 1] != native) revert InvalidOutput();
+    //         lpToken1ToNativePath = _path;
+    //         emit SetLpToken1ToNativePath(_path);
+    //     }
+    // }
 
     /**
      * @notice Sets the deviation from the twap we will allow on adding liquidity.
@@ -883,35 +880,35 @@ contract StrategyPassiveManagerSushi is StratManager {
      * @notice Returns the route to swap the first token to the native token for fee harvesting.
      * @return address[] The route to swap the first token to the native token.
      */
-    function lpToken0ToNative() external view returns (address[] memory) {
-        if (lpToken0ToNativePath.length == 0) return new address[](0);
-        return UniV3Utils.pathToRoute(lpToken0ToNativePath);
-    }
+    // function lpToken0ToNative() external view returns (address[] memory) {
+    //     if (lpToken0ToNativePath.length == 0) return new address[](0);
+    //     return UniV3Utils.pathToRoute(lpToken0ToNativePath);
+    // }
 
     /**
      * @notice Returns the route to swap the second token to the native token for fee harvesting.
      * @return address[] The route to swap the second token to the native token.
      */
-    function lpToken1ToNative() external view returns (address[] memory) {
-        if (lpToken1ToNativePath.length == 0) return new address[](0);
-        return UniV3Utils.pathToRoute(lpToken1ToNativePath);
-    }
+    // function lpToken1ToNative() external view returns (address[] memory) {
+    //     if (lpToken1ToNativePath.length == 0) return new address[](0);
+    //     return UniV3Utils.pathToRoute(lpToken1ToNativePath);
+    // }
 
-    /// @notice Returns the price of the first token in native token.
-    function lpToken0ToNativePrice() external returns (uint256) {
-        uint amount = 10 ** IERC20Metadata(lpToken0).decimals() / 10;
-        if (lpToken0 == native) return amount * 10;
-        return
-            IQuoter(quoter).quoteExactInput(lpToken0ToNativePath, amount) * 10;
-    }
+    // /// @notice Returns the price of the first token in native token.
+    // function lpToken0ToNativePrice() external returns (uint256) {
+    //     uint amount = 10 ** IERC20Metadata(lpToken0).decimals() / 10;
+    //     if (lpToken0 == native) return amount * 10;
+    //     return
+    //         IQuoter(quoter).quoteExactInput(lpToken0ToNativePath, amount) * 10;
+    // }
 
-    /// @notice Returns the price of the second token in native token.
-    function lpToken1ToNativePrice() external returns (uint256) {
-        uint amount = 10 ** IERC20Metadata(lpToken1).decimals() / 10;
-        if (lpToken1 == native) return amount * 10;
-        return
-            IQuoter(quoter).quoteExactInput(lpToken1ToNativePath, amount) * 10;
-    }
+    // /// @notice Returns the price of the second token in native token.
+    // function lpToken1ToNativePrice() external returns (uint256) {
+    //     uint amount = 10 ** IERC20Metadata(lpToken1).decimals() / 10;
+    //     if (lpToken1 == native) return amount * 10;
+    //     return
+    //         IQuoter(quoter).quoteExactInput(lpToken1ToNativePath, amount) * 10;
+    // }
 
     /**
      * @notice The twap of the last minute from the pool.

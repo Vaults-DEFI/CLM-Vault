@@ -11,9 +11,6 @@ contract StratManager is Ownable, Pausable {
         address unirouter;
     }
 
-    /// @notice The native address of the chain
-    address public native;
-
     /// @notice The address of the vault
     address public vault;
 
@@ -46,12 +43,10 @@ contract StratManager is Ownable, Pausable {
     error StrategyPaused();
 
     constructor(
-        CommonAddresses memory _commonAddresses,
-        address _native
+        CommonAddresses memory _commonAddresses
     ) Ownable(msg.sender) Pausable() {
         vault = _commonAddresses.vault;
         unirouter = _commonAddresses.unirouter;
-        native = _native;
     }
 
     /**
