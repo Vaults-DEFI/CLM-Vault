@@ -294,6 +294,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
             );
         if (amount0 > _amount0 || amount1 > _amount1) revert NotEnoughTokens();
         console.log("before transfer from...........");
+        console.log("msg.sender", msg.sender);
         if (amount0 > 0)
             IERC20(token0).safeTransferFrom(
                 msg.sender,

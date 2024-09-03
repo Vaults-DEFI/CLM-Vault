@@ -14,6 +14,7 @@ import {TickUtils, FullMath} from "./utils/TickUtils.sol"; // FullMath is copied
 import {UniV3Utils} from "./utils/UniV3Utils.sol";
 import {IVault} from "./interfaces/vault/IVault.sol";
 import {IQuoter} from "./interfaces/sushiswap/IQuoter.sol";
+import {console} from "forge-std/Test.sol";
 
 // IStrategyFactory
 // IStrategyConcLiq
@@ -165,12 +166,18 @@ contract StrategyPassiveManagerSushi is StratManager {
         int24 tick = currentTick();
         int56 twapTick = twap();
 
+        console.log("tick...", tick);
+        console.log("twaptick", twapTick);
+
         int56 minCalmTick = int56(
             SignedMath.max(twapTick - maxTickDeviation, MIN_TICK)
         );
         int56 maxCalmTick = int56(
             SignedMath.min(twapTick + maxTickDeviation, MAX_TICK)
         );
+
+        console.log("minCalmTick", minCalmTick);
+        console.log("maxCalmTick", maxCalmTick);
 
         // Calculate if greater than deviation % from twap and revert if it is.
         if (minCalmTick > tick || maxCalmTick < tick) return false;
