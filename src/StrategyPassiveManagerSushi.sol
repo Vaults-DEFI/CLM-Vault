@@ -12,7 +12,7 @@ import {LiquidityAmounts} from "./utils/LiquidityAmounts.sol"; // it is copied f
 import {TickMath} from "./utils/TickMath.sol"; // it is copied from sushiswap
 import {TickUtils, FullMath} from "./utils/TickUtils.sol"; // FullMath is copied from sushiswap
 import {UniV3Utils} from "./utils/UniV3Utils.sol";
-import {IVaultConcLiq} from "./interfaces/vault/IVaultConcLiq.sol";
+import {IVault} from "./interfaces/vault/IVault.sol";
 import {IQuoter} from "./interfaces/sushiswap/IQuoter.sol";
 
 // IStrategyFactory
@@ -961,8 +961,7 @@ contract StrategyPassiveManagerSushi is StratManager {
 
     /// @notice Retire the strategy and return all the dust to the fee recipient.
     function retireVault() external onlyOwner {
-        if (IVaultConcLiq(vault).totalSupply() != 10 ** 3)
-            revert NotAuthorized();
+        if (IVault(vault).totalSupply() != 10 ** 3) revert NotAuthorized();
         panic(0, 0);
         // address feeRecipient = beefyFeeRecipient();
         // (uint bal0, uint bal1) = balancesOfThis();

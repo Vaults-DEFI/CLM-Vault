@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-interface IVaultConcLiq {
+interface IVault {
     function previewDeposit(
         uint256 _amount0,
         uint256 _amount1
