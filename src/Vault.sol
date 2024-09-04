@@ -271,14 +271,16 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
         uint256 _minShares
     ) public nonReentrant {
         (address token0, address token1) = wants();
-
+        console.log("token0", token0);
         // Have the strategy remove all liquidity from the pool.
         strategy.beforeAction();
 
         /// @dev Do not allow deposits of inflationary tokens.
         // Transfer funds from user and send to strategy.
         (uint256 _bal0, uint256 _bal1) = balances();
+
         uint256 price = strategy.price();
+
         (
             uint256 amount0,
             uint256 amount1,
@@ -292,6 +294,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
                 _bal1,
                 swapFee()
             );
+
         if (amount0 > _amount0 || amount1 > _amount1) revert NotEnoughTokens();
         console.log("before transfer from...........");
         console.log("msg.sender", msg.sender);

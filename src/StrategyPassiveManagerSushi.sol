@@ -925,7 +925,7 @@ contract StrategyPassiveManagerSushi is StratManager {
         uint32[] memory secondsAgo = new uint32[](2);
         secondsAgo[0] = uint32(twapInterval);
         secondsAgo[1] = 0;
-
+        console.log("seconds ago", secondsAgo[0], secondsAgo[1]);
         (int56[] memory tickCuml, ) = IUniswapV3Pool(pool).observe(secondsAgo);
         twapTick = (tickCuml[1] - tickCuml[0]) / int32(twapInterval);
     }
