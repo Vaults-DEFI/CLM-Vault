@@ -13,127 +13,237 @@ contract VaultTest is Test {
     StrategyPassiveManagerSushi public strategyPassiveManagerSushi;
     StratManager public stratManager;
 
-    uint256 rbtcAmount = 10 * 10 ** 18;
-    uint256 rusdtAmount = 100000 * 10 ** 6;
+    uint256 wethAmount = 1 * 10 ** 18;
+    uint256 usdcAmount = 100 * 10 ** 6;
 
-    address RBTC = vm.envAddress("RBTC");
+    uint256 wrbtcAmount = 10 * 10 ** 18;
+    uint256 usdtAmount = 5 * 10 ** 18;
+    IERC20 weth;
+    IERC20 usdc;
+
+    address WETH = vm.envAddress("WETH");
+    address USDC = vm.envAddress("USDC");
+    address WRBTC = vm.envAddress("WRBTC");
     address RUSDT = vm.envAddress("RUSDT");
     address USER = vm.envAddress("USER");
-    address USER2 = vm.envAddress("USER2");
+    address USER1 = vm.envAddress("USER2");
+    address USER2 = vm.envAddress("USER3");
 
     function setUp() public {
         vault = new Vault("CLM token", "CLM");
-        console.log("vault contract address", address(vault));
+        // console.log("vault contract address", address(vault));
 
         // Define the common addresses
+        weth = IERC20(WETH);
+        usdc = IERC20(USDC);
+
         StratManager.CommonAddresses memory commonAddresses = StratManager
             .CommonAddresses({
                 vault: address(vault),
-                unirouter: 0x1400feFD6F9b897970f00Df6237Ff2B8b27Dc82C
+                unirouter: 0x8A21F6768C1f8075791D08546Dadf6daA0bE820c //for ARB Mainnet
+                // unirouter: 0xE592427A0AEce92De3Edee1F18E0157C05861564  //for ETH mainnet
+                // unirouter: 0x1400feFD6F9b897970f00Df6237Ff2B8b27Dc82C //for rootstock mainnet
             });
 
         strategyPassiveManagerSushi = new StrategyPassiveManagerSushi(
-            0xC0B92Ac272D427633c36fd03dc104a2042B3a425,
-            0xe43ca1Dee3F0fc1e2df73A0745674545F11A59F5,
+            //for arb mainnet
+            0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296,
+            0x0524E833cCD057e4d7A296e3aaAb9f7675964Ce1,
+            //for Eth-mainnet
+            // 0x35644Fb61aFBc458bf92B15AdD6ABc1996Be5014, //WETH-USDC pool
+            // 0x64e8802FE490fa7cc61d3463958199161Bb608A7, //quoterV2
+
+            //For Rootstock
+            // 0xC0B92Ac272D427633c36fd03dc104a2042B3a425, //WRBTC-RUSDCT pool
+            // 0xe43ca1Dee3F0fc1e2df73A0745674545F11A59F5, //quoterV2
             60,
             commonAddresses
         );
-        console.log(
-            "strategyPassiveManagerSushi contract address",
-            address(strategyPassiveManagerSushi)
-        );
-        console.log("test contract address", address(this));
+        // console.log(
+        //     "strategyPassiveManagerSushi contract address",
+        //     address(strategyPassiveManagerSushi)
+        // );
+        // console.log("test contract address", address(this));
         vault.setStrategyAddress(address(strategyPassiveManagerSushi));
         strategyPassiveManagerSushi.setDeviation(5);
+        strategyPassiveManagerSushi.setTwapInterval(120);
+        console.log("at time of setup.......");
+        console.log(
+            "after deposit pool balance of weth",
+            weth.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
+        );
+        console.log(
+            "after deposit pool balance of USDC",
+            usdc.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
+        );
     }
 
-    function testDeposit() public {
-        vm.startPrank(USER);
-        deal(RBTC, USER, rbtcAmount);
-        deal(RUSDT, USER, rusdtAmount);
+    function performDeposit(
+        address user,
+        address token0,
+        address token1,
+        uint256 tokenAmount0,
+        uint256 tokenAmount1
+    ) internal {
+        vm.startPrank(user);
+        deal(token0, user, tokenAmount0 * 2);
+        deal(token1, user, tokenAmount1 * 2);
         vm.stopPrank();
 
-        console.log("RBTC amount of USER", IERC20(RBTC).balanceOf(USER));
-        console.log("RUSDT amount of USER", IERC20(RUSDT).balanceOf(USER));
-        console.log("Let's preview the deposit");
+        console.log("****************************************");
+
+        (uint256 amount0Bal, uint256 amount1Bal) = strategyPassiveManagerSushi
+            .balances();
+
+        console.log(
+            "total balance from strategy for token0 and token1:",
+            amount0Bal,
+            amount1Bal
+        );
+        
+        // (uint256 amount0BalInStrat, uint256 amount1BalInStrat) = strategyPassiveManagerSushi.balancesOfThis();
+
+        // console.log(
+        //     "total balance in strategy for token0 and token1:",
+        //     amount0BalInStrat,
+        //     amount1BalInStrat
+        // );
+
+        console.log("****************************************");
+        console.log("user", user);
+        console.log(
+            "User WRBTC balance before deposit:",
+            IERC20(token0).balanceOf(user)
+        );
+        console.log(
+            "User RUSDT balance before deposit:",
+            IERC20(token1).balanceOf(user)
+        );
+
         (
             uint256 shares,
             uint256 amount0,
             uint256 amount1,
             uint256 fee0,
             uint256 fee1
-        ) = vault.previewDeposit(rbtcAmount, rusdtAmount);
+        ) = vault.previewDeposit(tokenAmount0, tokenAmount1);
 
-        console.log("shares", shares);
-        console.log("amount0", amount0);
-        console.log("amount1", amount1);
-        console.log("fee0", fee0);
-        console.log("fee1", fee1);
+        console.log("Preview shares:", shares);
+        console.log("Preview amount0:", amount0);
+        console.log("Preview amount1:", amount1);
+        console.log("Preview fee0:", fee0);
+        console.log("Preview fee1:", fee1);
 
-        console.log("before deposit USER shares", vault.balanceOf(USER));
-        // strategyPassiveManagerSushi.setDeviation(5);
-        // strategyPassiveManagerSushi.setTwapInterval(120);
-        vm.startPrank(USER);
+        vm.startPrank(user);
+        IERC20(token0).approve(address(vault), tokenAmount0);
+        IERC20(token1).approve(address(vault), tokenAmount1);
 
-        IERC20(RBTC).approve(address(vault), rbtcAmount);
-        IERC20(RUSDT).approve(address(vault), rusdtAmount);
-        console.log("..", strategyPassiveManagerSushi.twap());
-        vault.deposit(rbtcAmount, rusdtAmount, shares);
+        vault.deposit(amount0, amount1, shares - (shares * 1) / 1000);
 
         vm.stopPrank();
 
-        console.log("after deposit USER shares", vault.balanceOf(USER));
         console.log(
-            "after deposit RBTC amount of USER",
-            IERC20(RBTC).balanceOf(USER)
+            "User WRBTC balance after deposit:",
+            IERC20(token0).balanceOf(user)
         );
         console.log(
-            "after deposit RUSDT amount of USER",
-            IERC20(RUSDT).balanceOf(USER)
+            "User RUSDT balance after deposit:",
+            IERC20(token1).balanceOf(user)
+        );
+        console.log("User shares after deposit:", vault.balanceOf(user));
+
+        (amount0Bal, amount1Bal) = strategyPassiveManagerSushi.balances();
+        console.log(
+            "total balance from strategy for token0 and token1:",
+            amount0Bal,
+            amount1Bal
+        );
+        console.log(
+            "after deposit pool balance of weth",
+            weth.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
+        );
+        console.log(
+            "after deposit pool balance of USDC",
+            usdc.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
+        );
+        console.log("****************************************");
+    }
+
+    function performWithdraw(
+        address user,
+        address token0,
+        address token1
+    ) internal {
+        uint256 shares = vault.balanceOf(user);
+        console.log("****************************************");
+
+        console.log("user", user);
+        console.log("User shares before withdraw:", shares);
+
+        (uint256 amount0, uint256 amount1) = vault.previewWithdraw(shares);
+
+        console.log("Preview amount0 for withdraw:", amount0);
+        console.log("Preview amount1 for withdraw:", amount1);
+
+        vm.startPrank(user);
+        vault.withdraw(shares, amount0, amount1);
+        vm.stopPrank();
+
+        console.log("User shares after withdraw:", vault.balanceOf(user));
+        console.log(
+            "User WRBTC balance after withdraw:",
+            IERC20(token0).balanceOf(user)
+        );
+        console.log(
+            "User RUSDT balance after withdraw:",
+            IERC20(token1).balanceOf(user)
+        );
+        console.log("****************************************");
+    }
+
+    // function testDeposit() public {
+    //     address token0 = WETH;
+    //     address token1 = USDC;
+    //     // performDeposit(user,token0, token1, wrbtcAmount, usdtAmount);
+    //     // performDeposit(user1,token0, token1, wrbtcAmount / 2, usdtAmount / 2);
+
+    //     performDeposit(USER, token0, token1, wethAmount, usdcAmount);
+    //     performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
+    //     performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
+    // }
+
+    function testWithdraw() public {
+        address token0 = WETH;
+        address token1 = USDC;
+
+       
+        performDeposit(USER, token0, token1, wethAmount, usdcAmount);
+
+        console.log(
+            "totalSupply of share tokens after first deposit",
+            vault.totalSupply()
         );
 
-        // console.log("user2 deposits.................");
-        // vm.startPrank(USER2);
-        // deal(RBTC, USER2, rbtcAmount);
-        // deal(RUSDT, USER2, rusdtAmount);
-        // vm.stopPrank();
+        performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
+        performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
 
-        // console.log("RBTC amount of USER2", IERC20(RBTC).balanceOf(USER2));
-        // console.log("RUSDT amount of USER2", IERC20(RUSDT).balanceOf(USER2));
-        // console.log("Let's preview the deposit");
-        // (shares, amount0, amount1, fee0, fee1) = vault.previewDeposit(
-        //     rbtcAmount,
-        //     rusdtAmount
-        // );
+        console.log(
+            "share token balance of valut before withfraw: ",
+            vault.balanceOf(address(vault))
+        );
+        console.log("totalSupply", vault.totalSupply());
+        performWithdraw(USER, token0, token1);
 
-        // console.log("shares", shares);
-        // console.log("amount0", amount0);
-        // console.log("amount1", amount1);
-        // console.log("fee0", fee0);
-        // console.log("fee1", fee1);
+        // (uint256 amount0, uint256 amount1) = vault.previewWithdraw(1000);
+        // console.log("amount0 and amount1", amount0, amount1);
+        performWithdraw(USER1, token0, token1);
+        performWithdraw(USER2, token0, token1);
 
-        // console.log("before deposit USER2 shares", vault.balanceOf(USER2));
-        // // strategyPassiveManagerSushi.setDeviation(5);
-        // // strategyPassiveManagerSushi.setTwapInterval(120);
-        // vm.startPrank(USER2);
+        console.log(
+            "share token balance of valut after withfraw: ",
+            vault.balanceOf(address(vault))
+        );
 
-        // IERC20(RBTC).approve(address(vault), rbtcAmount);
-        // IERC20(RUSDT).approve(address(vault), rusdtAmount);
-
-        // vault.deposit(rbtcAmount, rusdtAmount, shares);
-
-        // vm.stopPrank();
-
-        // console.log("after deposit USER2 shares", vault.balanceOf(USER2));
-        // console.log("after deposit USER shares", vault.balanceOf(USER));
-        // console.log(
-        //     "after deposit RBTC amount of USER2",
-        //     IERC20(RBTC).balanceOf(USER2)
-        // );
-        // console.log(
-        //     "after deposit RUSDT amount of USER2",
-        //     IERC20(RUSDT).balanceOf(USER2)
-        // );
-        console.log("..", strategyPassiveManagerSushi.twap());
+        console.log("totalSupply", vault.totalSupply());
     }
 }

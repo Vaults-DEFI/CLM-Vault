@@ -164,12 +164,14 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
         shares = (amount1 - fee1) + (((amount0 - fee0) * price) / PRECISION);
 
         if (_totalSupply > 0) {
+            console.log("_totalSupply", _totalSupply);
             // How much of wants() do we have in token 1 equivalents;
             uint256 token1EquivalentBalance = ((((bal0 + fee0) * price) +
                 PRECISION -
                 1) / PRECISION) + (bal1 + fee1);
             shares = (shares * _totalSupply) / token1EquivalentBalance;
         } else {
+            console.log("first user so it will cut", shares);
             // First user donates MINIMUM_SHARES for security of the vault.
             shares = shares - MINIMUM_SHARES;
         }
@@ -296,8 +298,7 @@ contract Vault is ERC20Permit, Ownable, ReentrancyGuard {
             );
 
         if (amount0 > _amount0 || amount1 > _amount1) revert NotEnoughTokens();
-        console.log("before transfer from...........");
-        console.log("msg.sender", msg.sender);
+
         if (amount0 > 0)
             IERC20(token0).safeTransferFrom(
                 msg.sender,

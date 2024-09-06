@@ -166,8 +166,8 @@ contract StrategyPassiveManagerSushi is StratManager {
         int24 tick = currentTick();
         int56 twapTick = twap();
 
-        console.log("tick...", tick);
-        console.log("twaptick", twapTick);
+        // console.log("tick...", tick);
+        // console.log("twaptick", twapTick);
 
         int56 minCalmTick = int56(
             SignedMath.max(twapTick - maxTickDeviation, MIN_TICK)
@@ -176,8 +176,8 @@ contract StrategyPassiveManagerSushi is StratManager {
             SignedMath.min(twapTick + maxTickDeviation, MAX_TICK)
         );
 
-        console.log("minCalmTick", minCalmTick);
-        console.log("maxCalmTick", maxCalmTick);
+        // console.log("minCalmTick", minCalmTick);
+        // console.log("maxCalmTick", maxCalmTick);
 
         // Calculate if greater than deviation % from twap and revert if it is.
         if (minCalmTick > tick || maxCalmTick < tick) return false;
