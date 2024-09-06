@@ -1,66 +1,49 @@
-## Foundry
+# RacineFi Vault - README
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## **Description**
+RacineFi is a decentralized, automated vault platform that maximizes returns for users by dynamically managing liquidity across decentralized exchanges (DEXs) and yield farms. The platform automates liquidity rebalancing, reward harvesting, and reinvestment to ensure users grow their investments with zero platform fees.
 
-Foundry consists of:
+### **Key Features**
+- **Automated Deposits & Withdrawals**: Users deposit assets (WRBTC, RUSDT, or RIF) and receive shares representing their vault stake. Withdrawals burn the shares and return the equivalent value of the deposited asset.
+- **Dynamic Liquidity Rebalancing**: Every 6 hours, the rebalancer triggers the `moveticks` function, allowing the smart contract to automatically adjust liquidity positions for optimal returns and manage impermanent loss.
+- **Automated Rewards Management**: Earned rewards are harvested and reinvested into the vault for compounding growth.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### **Ideal For**
+- **Passive Investors**: No need for active management—RacineFi handles everything automatically.
+- **Cost-Conscious Users**: Zero platform fees, allowing users to keep 100% of their earnings.
 
-## Documentation
+---
 
-https://book.getfoundry.sh/
+## **Testing Locally**
 
-## Usage
+To test the RacineFi vault locally, follow the steps below:
 
-### Build
-
-```shell
-$ forge build
+### **1. Install Dependencies**
+```bash
+forge install
 ```
 
-### Test
-
-```shell
-$ forge test
+### **2. Build the Project**
+```bash
+forge build
 ```
 
-### Format
-
-```shell
-$ forge fmt
+### **3. Start a Local Anvil Node**
+```bash
+anvil --fork-url <FORK_URL>
 ```
+- **FORK_URL**: Use any RPC URL of your preferred network from Alchemy or any other node provider.
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
+### **4. Run Tests**
+In another terminal, run the tests:
+```bash
+forge test --match-path test/LendingManager.t.sol --rpc-url $RPC_URL -vv
 ```
+- **RPC_URL**: Use `http://127.0.0.1:8545`.
 
-### Anvil
+---
 
-```shell
-$ anvil
-```
+### **Useful Links**
+- **Alchemy**: https://www.alchemy.com
+- **Forge Documentation**: https://book.getfoundry.sh/
 
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
