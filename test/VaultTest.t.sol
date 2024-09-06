@@ -59,23 +59,10 @@ contract VaultTest is Test {
             60,
             commonAddresses
         );
-        // console.log(
-        //     "strategyPassiveManagerSushi contract address",
-        //     address(strategyPassiveManagerSushi)
-        // );
-        // console.log("test contract address", address(this));
+
         vault.setStrategyAddress(address(strategyPassiveManagerSushi));
         strategyPassiveManagerSushi.setDeviation(5);
         strategyPassiveManagerSushi.setTwapInterval(120);
-        console.log("at time of setup.......");
-        console.log(
-            "after deposit pool balance of weth",
-            weth.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
-        );
-        console.log(
-            "after deposit pool balance of USDC",
-            usdc.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
-        );
     }
 
     function performDeposit(
@@ -89,25 +76,6 @@ contract VaultTest is Test {
         deal(token0, user, tokenAmount0 * 2);
         deal(token1, user, tokenAmount1 * 2);
         vm.stopPrank();
-
-        console.log("****************************************");
-
-        (uint256 amount0Bal, uint256 amount1Bal) = strategyPassiveManagerSushi
-            .balances();
-
-        console.log(
-            "total balance from strategy for token0 and token1:",
-            amount0Bal,
-            amount1Bal
-        );
-        
-        // (uint256 amount0BalInStrat, uint256 amount1BalInStrat) = strategyPassiveManagerSushi.balancesOfThis();
-
-        // console.log(
-        //     "total balance in strategy for token0 and token1:",
-        //     amount0BalInStrat,
-        //     amount1BalInStrat
-        // );
 
         console.log("****************************************");
         console.log("user", user);
@@ -152,20 +120,6 @@ contract VaultTest is Test {
         );
         console.log("User shares after deposit:", vault.balanceOf(user));
 
-        (amount0Bal, amount1Bal) = strategyPassiveManagerSushi.balances();
-        console.log(
-            "total balance from strategy for token0 and token1:",
-            amount0Bal,
-            amount1Bal
-        );
-        console.log(
-            "after deposit pool balance of weth",
-            weth.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
-        );
-        console.log(
-            "after deposit pool balance of USDC",
-            usdc.balanceOf(0xf3Eb87C1F6020982173C908E7eB31aA66c1f0296)
-        );
         console.log("****************************************");
     }
 
@@ -201,22 +155,19 @@ contract VaultTest is Test {
         console.log("****************************************");
     }
 
-    // function testDeposit() public {
-    //     address token0 = WETH;
-    //     address token1 = USDC;
-    //     // performDeposit(user,token0, token1, wrbtcAmount, usdtAmount);
-    //     // performDeposit(user1,token0, token1, wrbtcAmount / 2, usdtAmount / 2);
+    function testDeposit() public {
+        address token0 = WETH;
+        address token1 = USDC;
 
-    //     performDeposit(USER, token0, token1, wethAmount, usdcAmount);
-    //     performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
-    //     performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
-    // }
+        performDeposit(USER, token0, token1, wethAmount, usdcAmount);
+        // performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
+        // performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
+    }
 
     function testWithdraw() public {
         address token0 = WETH;
         address token1 = USDC;
 
-       
         performDeposit(USER, token0, token1, wethAmount, usdcAmount);
 
         console.log(
@@ -224,26 +175,12 @@ contract VaultTest is Test {
             vault.totalSupply()
         );
 
-        performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
-        performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
+        // performDeposit(USER1, token0, token1, wethAmount, usdcAmount);
+        // performDeposit(USER2, token0, token1, wethAmount, usdcAmount);
 
-        console.log(
-            "share token balance of valut before withfraw: ",
-            vault.balanceOf(address(vault))
-        );
-        console.log("totalSupply", vault.totalSupply());
         performWithdraw(USER, token0, token1);
 
-        // (uint256 amount0, uint256 amount1) = vault.previewWithdraw(1000);
-        // console.log("amount0 and amount1", amount0, amount1);
-        performWithdraw(USER1, token0, token1);
-        performWithdraw(USER2, token0, token1);
-
-        console.log(
-            "share token balance of valut after withfraw: ",
-            vault.balanceOf(address(vault))
-        );
-
-        console.log("totalSupply", vault.totalSupply());
+        // performWithdraw(USER1, token0, token1);
+        // performWithdraw(USER2, token0, token1);
     }
 }
