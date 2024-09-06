@@ -34,7 +34,23 @@ anvil --fork-url <FORK_URL>
 ```
 - **FORK_URL**: Use any RPC URL of your preferred network from Alchemy or any other node provider.
 
-### **4. Run Tests**
+### **4. Set Up Environment Variables**
+
+Create a `.env` file in the root directory of your project and add the following environment variables:
+
+```env
+RPC_URL=http://127.0.0.1:8545
+WRBTC=0x542FDA317318eBf1d3DeAF76E0B632741a7e677d
+RUSDT=0xEf213441a85DF4d7acBdAe0Cf78004E1e486BB96
+POOL_RBTC_RUSDT=0xc0b92ac272d427633c36fd03dc104a2042b3a425
+USER=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+USER2=0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
+USER3=0x90F79bf6EB2c4f870365E785982E1f101E93b906
+WETH=0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
+USDC=0xaf88d065e77c8cC2239327C5EDb3A432268e5831
+```
+
+### **5. Run Tests**
 In another terminal, run the tests:
 ```bash
 forge test --match-path test/LendingManager.t.sol --rpc-url $RPC_URL -vv
