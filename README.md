@@ -17,7 +17,8 @@ RacineFi is a decentralized, automated vault platform that maximizes returns for
 ## **Integration with Rootstock**
 We have deployed our smart contracts for CLM and the vault on the Rootstock blockchain, leveraging its secure and efficient infrastructure to ensure seamless vault operations.
 
-- **Vault Contract Address**: `0x1234567890abcdef1234567890abcdef12345678` 
+- **Vault Contract Address**: `0x9eC3104E33A234040C865F90860d95e9d98711b9` 
+- **Strategy Contract Address**: `0x1CDd9fe9E02eb4CeE23121c32cC9303dB4D30D46` 
 ---
 
 ## **Testing Locally**
@@ -67,6 +68,12 @@ forge test --match-path test/LendingManager.t.sol --rpc-url $RPC_URL -vv
 
 ## **Building on Rootstock**
 Building on Rootstock has been smooth and straightforward, offering high security and compatibility with Ethereum tools, making it easier to deploy and manage our vault contracts. We found the infrastructure reliable, with fast transaction finality and low costs.
+
+---
+
+## **Team**
+- **Jay Sojitra**: Full Stack Developer, responsible for building and maintaining the platform’s frontend and backend services, ensuring a seamless user experience.
+- **Bhumi Sadariya**: Senior Smart Contract Developer, leading the development of secure and efficient smart contracts that power the vault's core functionality.
 
 ---
 
