@@ -72,8 +72,9 @@ Building on Rootstock has been smooth and straightforward, offering high securit
 ---
 
 ## **Team**
-- **Jay Sojitra**: Full Stack Developer, responsible for building and maintaining the platform’s frontend and backend services, ensuring a seamless user experience.
 - **Bhumi Sadariya**: Senior Smart Contract Developer, leading the development of secure and efficient smart contracts that power the vault's core functionality.
+- **Jay Sojitra**: Full Stack Developer, responsible for building and maintaining the platform’s frontend and backend services, ensuring a seamless user experience.
+
 
 ---
 
