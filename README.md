@@ -75,4 +75,3 @@ Building on Rootstock has been smooth and straightforward, offering high securit
 - **Alchemy**: https://www.alchemy.com
 - **Forge Documentation**: https://book.getfoundry.sh/
 
-Let me know if you'd like any other details added!
