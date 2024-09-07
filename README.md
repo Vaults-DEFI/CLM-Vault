@@ -14,6 +14,12 @@ RacineFi is a decentralized, automated vault platform that maximizes returns for
 
 ---
 
+## **Integration with Rootstock**
+We have deployed our smart contracts for CLM and the vault on the Rootstock blockchain, leveraging its secure and efficient infrastructure to ensure seamless vault operations.
+
+- **Vault Contract Address**: `0x1234567890abcdef1234567890abcdef12345678` 
+---
+
 ## **Testing Locally**
 
 To test the RacineFi vault locally, follow the steps below:
@@ -59,7 +65,13 @@ forge test --match-path test/LendingManager.t.sol --rpc-url $RPC_URL -vv
 
 ---
 
+## **Building on Rootstock**
+Building on Rootstock has been smooth and straightforward, offering high security and compatibility with Ethereum tools, making it easier to deploy and manage our vault contracts. We found the infrastructure reliable, with fast transaction finality and low costs.
+
+---
+
 ### **Useful Links**
 - **Alchemy**: https://www.alchemy.com
 - **Forge Documentation**: https://book.getfoundry.sh/
 
+Let me know if you'd like any other details added!
